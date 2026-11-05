@@ -37,13 +37,11 @@ Environment variables:
 | `SPEEDTEST_MAX_DOWNLOAD` | `67108864` locally, `8388608` on Vercel | Maximum generated download response in bytes. |
 | `SPEEDTEST_MAX_CONCURRENT` | `4` locally, `8` on Vercel | Concurrent transfer requests on this process or function instance. Extra requests receive HTTP 503. |
 
-Example for testing a separately hosted page:
-
 ```sh
-SPEEDTEST_HOST=127.0.0.1 SPEEDTEST_PORT=8080 SPEEDTEST_ALLOWED_ORIGINS=https://your-site.example python3 speedtest_server.py
+SPEEDTEST_PORT=8080 python3 speedtest_server.py
 ```
 
-Host the page and test server on HTTPS for real users. If they use different origins, select **Configure** in the page and enter the test server base URL (no endpoint path). Put the dependency-free Python server behind a production web server or reverse proxy before public use; add TLS, abuse/rate protection, sensible connection timeouts, observability, and capacity appropriate to your expected traffic. Do not expose a public bandwidth endpoint without accounting for bandwidth and denial-of-service risk.
+Host the page and test server on HTTPS for real users. The page calls whatever host it was opened from, so serve the page and the `/ping`, `/download`, and `/upload` routes together. Put the dependency-free Python server behind a production web server or reverse proxy before public use; add TLS, abuse/rate protection, sensible connection timeouts, observability, and capacity appropriate to your expected traffic. Do not expose a public bandwidth endpoint without accounting for bandwidth and denial-of-service risk.
 
 ## Deploy to Vercel
 
@@ -53,7 +51,7 @@ Host the page and test server on HTTPS for real users. If they use different ori
 npx vercel
 ```
 
-`vercel.json` keeps the function alive for up to 300 seconds (so a slow 8 MB download can finish) and ships `speed-test.html` inside the function bundle. The page and the API share the deployment origin, so a visitor does not need to use **Configure**.
+`vercel.json` keeps the function alive for up to 300 seconds (so a slow 8 MB download can finish) and ships `speed-test.html` inside the function bundle. The page and the API share the deployment origin, and the page measures that origin automatically.
 
 On Vercel, set:
 
@@ -71,4 +69,4 @@ The page posts 2 MB per upload so the body stays under Vercel’s 4.5 MB request
 - Download and upload: four parallel lanes, reporting total payload bits divided by elapsed wall-clock time. Transfers run for at least about three seconds and stop at bounded byte budgets.
 - Stop aborts in-flight fetches. The server discards uploads and does not store test data.
 
-The default page/server are self-hosted and have no external service dependency. The speed reflects the route to the configured test host, so choose a host near your users with enough network capacity.
+The default page and server are self-hosted and have no external service dependency. The speed reflects the route to the host the page was opened from, so deploy that host near your users with enough network capacity.
