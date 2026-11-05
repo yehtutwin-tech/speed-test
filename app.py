@@ -10,8 +10,10 @@ import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, Response, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response, StreamingResponse
 from starlette.requests import ClientDisconnect
+
+from isp_lookup import isp_for_headers
 
 ROOT = Path(__file__).resolve().parent
 # Stay under Vercel's 4.5 MB request-body limit. The page sends 2 MB uploads.
@@ -124,6 +126,12 @@ def favicon_svg():
 @app.get("/ping")
 def ping():
     return plain(b"ok")
+
+
+@app.get("/network")
+async def network(request: Request):
+    isp = await asyncio.to_thread(isp_for_headers, request.headers)
+    return JSONResponse({"isp": isp}, headers=NO_STORE)
 
 
 @app.get("/download")

@@ -9,7 +9,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import BoundedSemaphore
 from urllib.parse import urlparse, parse_qs
+import json
 import os
+
+from isp_lookup import isp_for_headers
 
 ROOT = Path(__file__).resolve().parent
 HOST = os.environ.get("SPEEDTEST_HOST", "127.0.0.1")
@@ -69,6 +72,11 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/ping":
             self._headers(200, 2)
             self.wfile.write(b"ok")
+            return
+        if parsed.path == "/network":
+            body = json.dumps({"isp": isp_for_headers(self.headers)}).encode()
+            self._headers(200, len(body), "application/json")
+            self.wfile.write(body)
             return
         if parsed.path != "/download":
             self._reply(404, b"not found")
