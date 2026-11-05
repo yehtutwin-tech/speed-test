@@ -61,6 +61,22 @@ def load_page() -> bytes:
 
 
 PAGE = load_page()
+ICON_CACHE = {
+    "Cache-Control": "public, max-age=86400",
+    "Vercel-CDN-Cache-Control": "public, max-age=86400",
+    "X-Content-Type-Options": "nosniff",
+}
+
+
+def load_asset(name: str) -> bytes:
+    for path in (ROOT / name, Path.cwd() / name):
+        if path.is_file():
+            return path.read_bytes()
+    return b""
+
+
+FAVICON_ICO = load_asset("favicon.ico")
+FAVICON_SVG = load_asset("favicon.svg")
 
 
 def plain(body: bytes, status: int = 200) -> Response:
@@ -89,6 +105,20 @@ def iter_payload(size: int):
 @app.get("/", response_class=HTMLResponse)
 def home():
     return HTMLResponse(PAGE, headers=NO_STORE)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon_ico():
+    if not FAVICON_ICO:
+        return plain(b"not found", 404)
+    return Response(FAVICON_ICO, media_type="image/x-icon", headers=ICON_CACHE)
+
+
+@app.get("/favicon.svg", include_in_schema=False)
+def favicon_svg():
+    if not FAVICON_SVG:
+        return plain(b"not found", 404)
+    return Response(FAVICON_SVG, media_type="image/svg+xml", headers=ICON_CACHE)
 
 
 @app.get("/ping")

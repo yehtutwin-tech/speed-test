@@ -63,6 +63,9 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/":
             self._serve_page()
             return
+        if parsed.path in ("/favicon.ico", "/favicon.svg"):
+            self._serve_icon(parsed.path)
+            return
         if parsed.path == "/ping":
             self._headers(200, 2)
             self.wfile.write(b"ok")
@@ -128,6 +131,17 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._headers(200, len(page), "text/html; charset=utf-8")
         self.wfile.write(page)
+
+    def _serve_icon(self, path):
+        name = path.rsplit("/", 1)[-1]
+        kind = "image/svg+xml" if name.endswith(".svg") else "image/x-icon"
+        try:
+            body = (ROOT / name).read_bytes()
+        except OSError:
+            self._reply(404, b"not found")
+            return
+        self._headers(200, len(body), kind)
+        self.wfile.write(body)
 
 
 class Server(ThreadingHTTPServer):
