@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Small, dependency-free HTTP endpoints for the Speed Test page.
 
-For local evaluation only. Put behind a production web server / reverse proxy,
-HTTPS, request-rate controls, and appropriate bandwidth limits before exposing it.
+For local evaluation only. Vercel deploys app.py instead of this process.
+Put this server behind a production web server / reverse proxy, HTTPS,
+request-rate controls, and appropriate bandwidth limits before exposing it.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
